@@ -26,32 +26,21 @@ Provisionnement d'un cluster Kubernetes managé sur Linode (2 nœuds, plan 4 GB)
 
 ### Étape 2 — MongoDB via Helm (Bitnami)
 
-**Ressources déployées :** `StatefulSet` (3 réplicas + 1 arbiter), `Service` headless, `Secret`, `PersistentVolumeClaim` (un par pod)
+`StatefulSet` (3 réplicas + 1 arbiter), `Service` headless, `Secret`, `PersistentVolumeClaim` (un par pod).
 
-**Concepts démontrés :**
-- Surcharge des valeurs par défaut d'un chart Helm via un fichier `values.yaml` personnalisé
-- Mode `replicaset` : 3 instances de données + 1 arbiter pour les élections de primaire
-- `storageClass: linode-block-storage` : provisionnement dynamique de volumes cloud par pod
-- Récupération du `Secret` créé automatiquement par le chart pour y référencer le mot de passe
+Les valeurs par défaut du chart Bitnami sont surchargées via un fichier `values.yaml` personnalisé. Le mode `replicaset` déploie 3 instances de données + 1 arbiter pour les élections de primaire. La `storageClass: linode-block-storage` provisionne dynamiquement un volume cloud par pod. Le mot de passe est lu depuis le `Secret` créé automatiquement par le chart.
 
 ### Étape 3 — Mongo Express
 
-**Ressources déployées :** `Deployment`, `Service` (ClusterIP)
+`Deployment` + `Service` ClusterIP.
 
-**Concepts démontrés :**
-- Injection du mot de passe via `secretKeyRef` pour lire directement dans le `Secret` du chart
-- Utilisation d'un `Service` headless pour cibler le pod primaire MongoDB via DNS (`mongodb-0.mongodb-headless`) plutôt qu'un VIP load-balancé
-- Interpolation de variables d'environnement avec la syntaxe `$(VAR)` dans les specs de conteneur
+Le mot de passe est injecté via `secretKeyRef` pour lire directement dans le `Secret` du chart Bitnami. La connexion à MongoDB utilise un `Service` headless pour cibler le pod primaire par son DNS stable (`mongodb-0.mongodb-headless`) plutôt qu'un VIP load-balancé. Les variables d'environnement entre elles utilisent la syntaxe `$(VAR)` dans les specs de conteneur.
 
 ### Étape 4 — Nginx Ingress Controller
 
-**Ressources déployées :** `Deployment` (contrôleur Nginx), `Service` (LoadBalancer), `Ingress`
+`Deployment` contrôleur Nginx, `Service` LoadBalancer, `Ingress`.
 
-**Concepts démontrés :**
-- Installation du contrôleur Nginx via Helm (OCI registry)
-- Provisionnement automatique d'un **NodeBalancer Linode** lors de la création du Service `LoadBalancer`
-- Règle `Ingress` avec `ingressClassName: nginx` pour router le trafic externe vers Mongo Express
-- Test de persistance : scale down à 0 puis scale up à 3 — les volumes se réattachent automatiquement aux mêmes pods et les données sont conservées
+Le contrôleur Nginx est installé via Helm (OCI registry). La création du `Service` de type `LoadBalancer` provisionne automatiquement un **NodeBalancer Linode**. La règle `Ingress` avec `ingressClassName: nginx` route le trafic externe vers Mongo Express. Test de persistance : scale down à 0 puis scale up à 3 — les volumes se réattachent aux mêmes pods et les données sont conservées.
 
 ---
 
@@ -61,36 +50,25 @@ This project deploys a MongoDB + Mongo Express stack on a Linode managed Kuberne
 
 ### Step 1 — LKE Cluster
 
-Provisioning a managed Kubernetes cluster on Linode (2 nodes, 4 GB plan). Configuring `kubectl` via the `kubeconfig.yaml` file downloaded from the Linode console.
+Provisioning a managed Kubernetes cluster on Linode (2 nodes, 4 GB plan). `kubectl` is configured via the `kubeconfig.yaml` file downloaded from the Linode console.
 
 ### Step 2 — MongoDB via Helm (Bitnami)
 
-**Deployed resources:** `StatefulSet` (3 replicas + 1 arbiter), headless `Service`, `Secret`, `PersistentVolumeClaim` (one per pod)
+`StatefulSet` (3 replicas + 1 arbiter), headless `Service`, `Secret`, `PersistentVolumeClaim` (one per pod).
 
-**Concepts demonstrated:**
-- Overriding default chart values via a custom `values.yaml` file
-- `replicaset` mode: 3 data instances + 1 arbiter for primary elections
-- `storageClass: linode-block-storage`: dynamic cloud volume provisioning per pod
-- Using the `Secret` automatically created by the chart to reference the password
+Default chart values are overridden via a custom `values.yaml`. The `replicaset` mode runs 3 data instances + 1 arbiter for primary elections. `storageClass: linode-block-storage` dynamically provisions a cloud volume per pod. The password is read from the `Secret` that the chart creates automatically.
 
 ### Step 3 — Mongo Express
 
-**Deployed resources:** `Deployment`, `Service` (ClusterIP)
+`Deployment` + `ClusterIP` `Service`.
 
-**Concepts demonstrated:**
-- Password injection via `secretKeyRef` to read directly from the chart's `Secret`
-- Using a headless `Service` to target the primary MongoDB pod by DNS (`mongodb-0.mongodb-headless`) rather than a load-balanced VIP
-- Environment variable interpolation with `$(VAR)` syntax in container specs
+Password injection uses `secretKeyRef` to read directly from the Bitnami chart's `Secret`. The MongoDB connection targets the primary pod via its stable DNS name (`mongodb-0.mongodb-headless`) using a headless `Service`, rather than a load-balanced VIP. Environment variable interpolation between vars uses the `$(VAR)` syntax in container specs.
 
 ### Step 4 — Nginx Ingress Controller
 
-**Deployed resources:** `Deployment` (Nginx controller), `Service` (LoadBalancer), `Ingress`
+Nginx controller `Deployment`, `LoadBalancer` `Service`, `Ingress` rule.
 
-**Concepts demonstrated:**
-- Installing the Nginx controller via Helm (OCI registry)
-- Automatic provisioning of a **Linode NodeBalancer** when the `LoadBalancer` Service is created
-- `Ingress` rule with `ingressClassName: nginx` to route external traffic to Mongo Express
-- Persistence test: scale down to 0 then back to 3 — volumes reattach automatically to the same pods and data is preserved
+The Nginx controller is installed via Helm from the OCI registry. Creating the `LoadBalancer` Service automatically provisions a **Linode NodeBalancer**. An `Ingress` rule with `ingressClassName: nginx` routes external traffic to Mongo Express. Persistence test: scale down to 0 then back to 3 — volumes reattach to the same pods and data is preserved.
 
 ---
 
