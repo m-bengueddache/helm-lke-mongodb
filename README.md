@@ -53,6 +53,8 @@ Provisionnement d'un cluster Kubernetes managé sur Linode (2 nœuds, plan 4 GB)
 - Règle `Ingress` avec `ingressClassName: nginx` pour router le trafic externe vers Mongo Express
 - Test de persistance : scale down à 0 puis scale up à 3 — les volumes se réattachent automatiquement aux mêmes pods et les données sont conservées
 
+---
+
 ## EN — Description
 
 This project deploys a MongoDB + Mongo Express stack on a Linode managed Kubernetes cluster (LKE) using Helm to orchestrate the complex resources.
@@ -89,54 +91,6 @@ Provisioning a managed Kubernetes cluster on Linode (2 nodes, 4 GB plan). Config
 - Automatic provisioning of a **Linode NodeBalancer** when the `LoadBalancer` Service is created
 - `Ingress` rule with `ingressClassName: nginx` to route external traffic to Mongo Express
 - Persistence test: scale down to 0 then back to 3 — volumes reattach automatically to the same pods and data is preserved
-
----
-
-## FR — Démarrage rapide
-
-```bash
-# 1. Pointer kubectl vers le cluster LKE
-chmod 400 your-kubeconfig.yaml
-export KUBECONFIG=your-kubeconfig.yaml
-
-# 2. Déployer MongoDB
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install mongodb --values helm-mongodb.yaml bitnami/mongodb
-
-# 3. Déployer Mongo Express
-kubectl apply -f helm-mongo-express.yaml
-
-# 4. Installer le contrôleur Nginx Ingress
-helm install nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress \
-  --version 2.5.1 \
-  --set controller.reportIngressStatus.enable=true
-
-# 5. Appliquer la règle Ingress (mettre à jour host dans helm-ingress.yaml)
-kubectl apply -f helm-ingress.yaml
-```
-
-## EN — Quick Start
-
-```bash
-# 1. Point kubectl to the LKE cluster
-chmod 400 your-kubeconfig.yaml
-export KUBECONFIG=your-kubeconfig.yaml
-
-# 2. Deploy MongoDB
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install mongodb --values helm-mongodb.yaml bitnami/mongodb
-
-# 3. Deploy Mongo Express
-kubectl apply -f helm-mongo-express.yaml
-
-# 4. Install Nginx Ingress Controller
-helm install nginx-ingress oci://ghcr.io/nginx/charts/nginx-ingress \
-  --version 2.5.1 \
-  --set controller.reportIngressStatus.enable=true
-
-# 5. Apply Ingress rule (update host in helm-ingress.yaml first)
-kubectl apply -f helm-ingress.yaml
-```
 
 ---
 
